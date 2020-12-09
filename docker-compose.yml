@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:5.7
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      - MYSQL_DATABASE=redmine
+      - MYSQL_ROOT_PASSWORD=password
+
+  redmine:
+    build: .
+    volumes:
+      - .:/app
+      - /app/vendor
+      - /app/tmp
+      - /app/log
+      - /app/.git
+      - /app/node_modules
+    ports:
+      - "${REDMINE_PORT:-3000}:3000"
+    links:
+      - mysql
+      - mail
+    environment:
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=password
+      - DATABASE_HOST=mysql
+    tty: true
+
+  mail:
+    image: schickling/mailcatcher
+    ports:
+      - "${MAIL_PORT:-1080}:1080"
+
+volumes:
+  bundle:
+    driver: local
